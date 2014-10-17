@@ -1,13 +1,7 @@
 package net.glowstone.block;
 
 import net.glowstone.block.blocktype.*;
-import net.glowstone.block.itemtype.ItemDye;
-import net.glowstone.block.itemtype.ItemFoodSeeds;
-import net.glowstone.block.itemtype.ItemHoe;
-import net.glowstone.block.itemtype.ItemPlaceAs;
-import net.glowstone.block.itemtype.ItemSeeds;
-import net.glowstone.block.itemtype.ItemSign;
-import net.glowstone.block.itemtype.ItemType;
+import net.glowstone.block.itemtype.*;
 import org.bukkit.Material;
 
 import java.util.HashMap;
