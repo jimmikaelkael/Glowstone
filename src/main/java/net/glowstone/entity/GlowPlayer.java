@@ -26,6 +26,7 @@ import net.glowstone.net.protocol.ProtocolType;
 import net.glowstone.util.StatisticMap;
 import net.glowstone.util.TextMessage;
 import net.glowstone.util.nbt.CompoundTag;
+import net.glowstone.util.nbt.NBT;
 import org.apache.commons.lang.Validate;
 import org.bukkit.*;
 import org.bukkit.World.Environment;
@@ -62,43 +63,43 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * A static entity id to use when telling the client about itself.
      */
-    private static final int SELF_ID = 0;
+    private static final transient int SELF_ID = 0;
 
     /**
      * This player's session.
      */
-    private final GlowSession session;
+    private final transient GlowSession session;
 
     /**
      * The entities that the client knows about.
      */
-    private final Set<GlowEntity> knownEntities = new HashSet<>();
+    private final transient Set<GlowEntity> knownEntities = new HashSet<>();
 
     /**
      * The entities that are hidden from the client.
      */
-    private final Set<UUID> hiddenEntities = new HashSet<>();
+    private final transient Set<UUID> hiddenEntities = new HashSet<>();
 
     /**
      * The chunks that the client knows about.
      */
-    private final Set<GlowChunk.Key> knownChunks = new HashSet<>();
+    private final transient Set<GlowChunk.Key> knownChunks = new HashSet<>();
 
     /**
      * A queue of BlockChangeMessages to be sent.
      */
-    private final List<BlockChangeMessage> blockChanges = new LinkedList<>();
+    private final transient List<BlockChangeMessage> blockChanges = new LinkedList<>();
 
     /**
      * A queue of messages that should be sent after block changes are processed.
      * Used for sign updates and other situations where the block must be sent first.
      */
-    private final List<Message> afterBlockChanges = new LinkedList<>();
+    private final transient List<Message> afterBlockChanges = new LinkedList<>();
 
     /**
      * The set of plugin channels this player is listening on
      */
-    private final Set<String> listeningChannels = new HashSet<>();
+    private final transient Set<String> listeningChannels = new HashSet<>();
 
     /**
      * The player's statistics, achievements, and related data.
@@ -108,141 +109,150 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * Whether the player has played before (will be false on first join).
      */
-    private final boolean hasPlayedBefore;
+    private final boolean hasPlayedBefore; // TODO save this with nbt, ex-bukkit data
 
     /**
      * The time the player first played, or 0 if unknown.
      */
-    private final long firstPlayed;
+    private final long firstPlayed; // TODO save this with nbt, ex-bukkit data
 
     /**
      * The time the player last played, or 0 if unknown.
      */
-    private final long lastPlayed;
+    private final long lastPlayed; // TODO save this with nbt, ex-bukkit data
 
     /**
      * The time the player joined.
      */
-    private final long joinTime;
+    private final long joinTime; // TODO save this with nbt, ex-bukkit data
 
     /**
      * The settings sent by the client.
      */
-    private ClientSettings settings = ClientSettings.DEFAULT;
+    private transient ClientSettings settings = ClientSettings.DEFAULT;
 
     /**
      * The lock used to prevent chunks from unloading near the player.
      */
-    private ChunkManager.ChunkLock chunkLock;
+    private transient ChunkManager.ChunkLock chunkLock;
 
     /**
      * The tracker for changes to the currently open inventory.
      */
-    private InventoryMonitor invMonitor;
+    private transient InventoryMonitor invMonitor;
 
     /**
      * The display name of this player, for chat purposes.
      */
-    private String displayName;
+    private transient String displayName;
 
     /**
      * The name a player has in the player list
      */
-    private String playerListName;
+    private transient String playerListName;
 
     /**
      * Cumulative amount of experience points the player has collected.
      */
+    @NBT(value = "XpTotal", root = true)
     private int totalExperience = 0;
 
     /**
      * The current level (or skill point amount) of the player.
      */
+    @NBT(value = "XpLevel", root = true)
     private int level = 0;
 
     /**
      * The progress made to the next level, from 0 to 1.
      */
+    @NBT(value = "XpP", root = true)
     private float experience = 0;
 
     /**
      * The human entity's current food level
      */
+    @NBT(value = "foodLevel", root = true)
     private int food = 20;
 
     /**
      * The player's current exhaustion level.
      */
+    @NBT(value = "foodExhaustionLevel", root = true)
     private float exhaustion = 0;
 
     /**
      * The player's current saturation level.
      */
+    @NBT(value = "foodSaturationLevel", root = true)
     private float saturation = 0;
 
     /**
      * Whether to perform special scaling of the player's health.
      */
-    private boolean healthScaled = false;
+    private transient boolean healthScaled = false;
 
     /**
      * The scale at which to display the player's health.
      */
-    private double healthScale = 20;
+    private transient double healthScale = 20;
 
     /**
      * This player's current time offset.
      */
-    private long timeOffset = 0;
+    private transient long timeOffset = 0;
 
     /**
      * Whether the time offset is relative.
      */
-    private boolean timeRelative = true;
+    private transient boolean timeRelative = true;
 
     /**
      * The player-specific weather, or null for normal weather.
      */
-    private WeatherType playerWeather = null;
+    private transient WeatherType playerWeather = null;
 
     /**
      * The player's compass target.
      */
-    private Location compassTarget;
+    private transient Location compassTarget;
 
     /**
      * Whether this player's sleeping state is ignored when changing time.
      */
-    private boolean sleepingIgnored;
+    private transient boolean sleepingIgnored;
 
     /**
      * The bed spawn location of a player
      */
+    @NBT(value = "SpawnLocation", root = true)
     private Location bedSpawn;
 
     /**
      * The location of the sign the player is currently editing, or null.
      */
-    private Location signLocation;
+    private transient Location signLocation;
 
     /**
      * Whether the player is permitted to fly.
      */
-    private boolean canFly;
+    private transient boolean canFly;
 
     /**
      * Whether the player is currently flying.
      */
-    private boolean flying;
+    private transient boolean flying;
 
     /**
      * The player's base flight speed.
      */
+    @NBT(value = "flySpeed")
     private float flySpeed = 0.1f;
 
     /**
      * The player's base walking speed.
      */
+    @NBT(value = "walkSpeed")
     private float walkSpeed = 0.2f;
 
     /**

@@ -5,6 +5,7 @@ import net.glowstone.EventFactory;
 import net.glowstone.constants.GlowPotionEffect;
 import net.glowstone.inventory.EquipmentMonitor;
 import net.glowstone.net.message.play.entity.EntityEquipmentMessage;
+import net.glowstone.util.nbt.NBT;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,11 +32,13 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * Potion effects on the entity.
      */
+    @NBT(value = "ActiveEffects", root = true)
     private final Map<PotionEffectType, PotionEffect> potionEffects = new HashMap<>();
 
     /**
      * The entity's health.
      */
+    @NBT(value = "HealF", root = true)
     protected double health;
 
     /**
@@ -51,6 +54,7 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * How long the entity has until it runs out of air.
      */
+    @NBT(value = "Air", root = true)
     private int airTicks = 300;
 
     /**
@@ -71,27 +75,33 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * A custom overhead name to be shown for non-Players.
      */
+    @NBT(value = "CustomName", root = true)
     private String customName;
 
     /**
      * Whether the custom name is shown.
      */
+    @NBT(value = "CustomNameVisible", root = true)
     private boolean customNameVisible;
 
     /**
      * Whether the entity should be removed if it is too distant from players.
      */
-    private boolean removeDistance;
+    private transient boolean removeDistance;
 
     /**
      * Whether the (non-Player) entity can pick up armor and tools.
      */
+    @NBT(value = "CanPickUpLoot", root = true)
     private boolean pickupItems;
 
     /**
      * Monitor for the equipment of this entity.
      */
+    @NBT(value = "EntityEquipment", root = true)
     private EquipmentMonitor equipmentMonitor = new EquipmentMonitor(this);
+
+    // TODO Add DropChances maybe?
 
     /**
      * Creates a mob within the specified world.

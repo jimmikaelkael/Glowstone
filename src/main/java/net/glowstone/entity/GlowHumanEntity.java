@@ -7,6 +7,7 @@ import net.glowstone.net.message.play.entity.EntityEquipmentMessage;
 import net.glowstone.net.message.play.entity.EntityHeadRotationMessage;
 import net.glowstone.net.message.play.entity.SpawnPlayerMessage;
 import net.glowstone.util.Position;
+import net.glowstone.util.nbt.NBT;
 import org.apache.commons.lang.Validate;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -66,22 +67,23 @@ public abstract class GlowHumanEntity extends GlowLivingEntity implements HumanE
     /**
      * This human's PermissibleBase for permissions.
      */
-    protected PermissibleBase permissions;
+    protected transient PermissibleBase permissions;
 
     /**
      * Whether this human is considered an op.
      */
-    private boolean isOp;
+    private transient boolean isOp;
 
     /**
      * The player's active game mode
      */
+    @NBT(value = "playerGameType", root = true)
     private GameMode gameMode;
 
     /**
      * The player's currently open inventory
      */
-    private InventoryView inventoryView;
+    private transient InventoryView inventoryView;
 
     /**
      * Creates a human within the specified world and with the specified name.
