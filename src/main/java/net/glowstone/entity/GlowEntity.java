@@ -77,7 +77,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * This entity's unique id.
      */
-    @NBT("UUID")
+    @NBT(value = "UUID", root = true)
     private UUID uuid;
 
     /**
@@ -88,7 +88,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * The current position.
      */
-    @NBT("Location")
+    @NBT(value = "Location", root = true)
     protected final Location location;
 
     /**
@@ -99,7 +99,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * The entity's velocity, applied each tick.
      */
-    @NBT("Motion")
+    @NBT(value = "Motion", root = true)
     protected final Vector velocity = new Vector();
 
     /**
@@ -120,13 +120,13 @@ public abstract class GlowEntity implements Entity {
     /**
      * A flag indicting if the entity is on the ground
      */
-    @NBT("OnGround")
+    @NBT(value = "OnGround", root = true)
     private boolean onGround = true;
 
     /**
      * The distance the entity is currently falling without touching the ground.
      */
-    @NBT("FallDistance")
+    @NBT(value = "FallDistance", root = true)
     private float fallDistance;
 
     /**
