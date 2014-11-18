@@ -9,6 +9,7 @@ import net.glowstone.entity.meta.MetadataIndex;
 import net.glowstone.entity.meta.MetadataMap;
 import net.glowstone.net.message.play.entity.*;
 import net.glowstone.util.Position;
+import net.glowstone.util.nbt.NBT;
 import org.apache.commons.lang.Validate;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
@@ -51,86 +52,92 @@ public abstract class GlowEntity implements Entity {
     /**
      * The metadata store for entities.
      */
-    private static final MetadataStore<Entity> bukkitMetadata = new EntityMetadataStore();
+    private static final transient MetadataStore<Entity> bukkitMetadata = new EntityMetadataStore();
 
     /**
      * The server this entity belongs to.
      */
-    protected final GlowServer server;
+    protected final transient GlowServer server;
 
     /**
      * The entity's metadata.
      */
-    protected final MetadataMap metadata = new MetadataMap(getClass());
+    protected final transient MetadataMap metadata = new MetadataMap(getClass());
 
     /**
      * The world this entity belongs to.
      */
-    protected GlowWorld world;
+    protected transient GlowWorld world;
 
     /**
      * A flag indicating if this entity is currently active.
      */
-    protected boolean active = true;
+    protected transient boolean active = true;
 
     /**
      * This entity's unique id.
      */
+    @NBT("UUID")
     private UUID uuid;
 
     /**
      * This entity's current identifier for its world.
      */
-    protected int id;
+    protected transient int id;
 
     /**
      * The current position.
      */
+    @NBT("Location")
     protected final Location location;
 
     /**
      * The position in the last cycle.
      */
-    protected final Location previousLocation;
+    protected final transient Location previousLocation;
 
     /**
      * The entity's velocity, applied each tick.
      */
+    @NBT("Motion")
     protected final Vector velocity = new Vector();
 
     /**
      * Whether the entity should have its position resent as if teleported.
      */
-    protected boolean teleported = false;
+    protected transient boolean teleported = false;
 
     /**
      * Whether the entity should have its velocity resent.
      */
-    protected boolean velocityChanged = false;
+    protected transient boolean velocityChanged = false;
 
     /**
      * An EntityDamageEvent representing the last damage cause on this entity.
      */
-    private EntityDamageEvent lastDamageCause;
+    private transient EntityDamageEvent lastDamageCause;
 
     /**
      * A flag indicting if the entity is on the ground
      */
+    @NBT("OnGround")
     private boolean onGround = true;
 
     /**
      * The distance the entity is currently falling without touching the ground.
      */
+    @NBT("FallDistance")
     private float fallDistance;
 
     /**
      * A counter of how long this entity has existed
      */
-    private int ticksLived = 0;
+    private transient int ticksLived = 0;
 
     /**
      * How long the entity has been on fire, or 0 if it is not.
      */
+    @NBT("Fire")
     private int fireTicks = 0;
 
     /**
