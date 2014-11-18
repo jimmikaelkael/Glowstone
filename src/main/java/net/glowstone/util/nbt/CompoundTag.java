@@ -250,13 +250,13 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
         return tag != null && clazz == tag.getClass();
     }
 
-    void put(String key, Tag tag) {
+    public void put(String key, Tag tag) {
         Validate.notNull(key, "Key cannot be null");
         Validate.notNull(tag, "Tag cannot be null");
         value.put(key, tag);
     }
 
-    private <V, T extends Tag<V>> V get(String key, Class<T> clazz) {
+    public <V, T extends Tag<V>> V get(String key, Class<T> clazz) {
         return getTag(key, clazz).getValue();
     }
 

@@ -15,6 +15,11 @@ import java.lang.annotation.Target;
 public @interface NBT {
 
     /**
+     * The default tag type to indicate "auto-determine".
+     */
+    public static final Class<? extends Tag> DEFAULT_TAG = Tag.class;
+
+    /**
      * Gets or sets the NBT tag name.
      *
      * @return The NBT tag name
@@ -40,13 +45,13 @@ public @interface NBT {
 
     /**
      * Gets or sets the tag type to force the annotated value into. If the type
-     * {@link net.glowstone.util.nbt.Tag} is supplied, the tag type will be
-     * determined on-demand. If this is any other value, then the value will be
-     * placed into the supplied tag type. If the value cannot be put into the
+     * {@link #DEFAULT_TAG} is supplied, the tag type will be determined
+     * on-demand. If this is any other value, then the value will be placed
+     * into the supplied tag type. If the value cannot be put into the
      * specified type (such as a String into an IntTag), an exception will be
      * raised upon being determined.
      *
      * @return The tag type to use
      */
-    Class<? extends Tag> type() default Tag.class;
+    Class<? extends Tag> type() default DEFAULT_TAG;
 }
