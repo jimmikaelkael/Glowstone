@@ -5,7 +5,7 @@ import net.glowstone.util.nbt.CompoundTag;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public class PotionNbt implements NbtSerializer<PotionEffect, CompoundTag> {
+public class PotionEffectNbt implements NbtSerializer<PotionEffect, CompoundTag> {
     @Override
     public CompoundTag serialize(PotionEffect obj) {
         return null;
