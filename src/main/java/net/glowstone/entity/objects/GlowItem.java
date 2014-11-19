@@ -8,6 +8,7 @@ import net.glowstone.net.message.play.entity.EntityTeleportMessage;
 import net.glowstone.net.message.play.entity.EntityVelocityMessage;
 import net.glowstone.net.message.play.entity.SpawnObjectMessage;
 import net.glowstone.util.Position;
+import net.glowstone.util.nbt.NBT;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -28,9 +29,13 @@ public final class GlowItem extends GlowEntity implements Item {
      */
     private static final int LIFETIME = 5 * 60 * 20;
 
+    @NBT("Item")
+    private static final MetadataIndex ITEM_INDEX = MetadataIndex.ITEM_ITEM;
+
     /**
      * The remaining delay until this item may be picked up.
      */
+    @NBT("PickupDelay")
     private int pickupDelay;
 
     /**

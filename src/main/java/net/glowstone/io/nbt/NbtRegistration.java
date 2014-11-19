@@ -1,9 +1,11 @@
 package net.glowstone.io.nbt;
 
+import net.glowstone.entity.meta.MetadataIndex;
 import net.glowstone.io.nbt.common.*;
 import net.glowstone.util.nbt.NBT;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.Vector;
 
@@ -33,6 +35,8 @@ public final class NbtRegistration {
         registrations.put(PotionEffect.class, new PotionEffectNbt());
         registrations.put(UUID.class, new UuidNbt());
         registrations.put(Vector.class, new VectorNbt());
+        registrations.put(ItemStack.class, new ItemStackNbt());
+        registrations.put(MetadataIndex.class, new EntityMetadataNbt());
 
         BY_TYPE = Collections.unmodifiableMap(registrations);
     }
@@ -50,11 +54,22 @@ public final class NbtRegistration {
      */
     public static NbtSerializer getSerializer(Object obj) {
         if (obj == null) throw new IllegalArgumentException("Object cannot be null");
+        return getSerializer(obj.getClass());
+    }
+
+    /**
+     * Gets the applicable serializer for the specified class. If the supplied
+     * class cannot be matched to a registered serializer, null is returned.
+     * @param clazz The class to find a serializer for, cannot be null
+     * @return The found serializer, or null if none found
+     */
+    public static NbtSerializer getSerializer(Class<?> clazz){
+        if (clazz == null) throw new IllegalArgumentException("Class cannot be null");
 
         NbtSerializer serializer = null;
-        if (BY_TYPE.containsKey(obj.getClass())) {
-            serializer = BY_TYPE.get(obj.getClass());
-        } else if (isTagged(obj.getClass())) {
+        if (BY_TYPE.containsKey(clazz)) {
+            serializer = BY_TYPE.get(clazz);
+        } else if (isTagged(clazz)) {
             serializer = TAGGED_SERIALIZER;
         }
 
