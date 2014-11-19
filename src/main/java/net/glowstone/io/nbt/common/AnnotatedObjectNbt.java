@@ -74,14 +74,45 @@ public class AnnotatedObjectNbt implements NbtSerializer<Object, CompoundTag> {
 
     @Override
     public Object deserialize(CompoundTag tag) {
+        // TODO
         return null;
     }
 
     private Tag toTag(Object value) {
         // TODO: Lists and other collections
+        Tag result = null;
 
         // Primitive check (we can be hopeful)
-        return new IntTag(1); // TODO: Actual implementation
+        for(TagType type : TagType.values()){
+            if(type.getValueClass()!=null&&type.getValueClass() == value.getClass()){
+                if(type == TagType.COMPOUND || type == TagType.LIST){
+                    throw new NbtException("Cannot construct a "+type.getName());
+                }else{
+                    try {
+                        result =  type.getConstructor().newInstance(value);
+                    } catch (Exception e) {
+                        throw new NbtException("Cannot convert " + value.getClass().getName() + " (" + value + ") to tag " + type.getName(), e);
+                    }
+                }
+            }
+        }
+
+        // Now check if we need to go looking up the value
+        if(result == null){
+            NbtSerializer serializer = NbtRegistration.getSerializer(value);
+            if(serializer == null)
+                throw new NbtException("Could not find serializer for "+value.getClass().getName()+" ("+value+")");
+
+            try{
+                // This is somewhat dangerous, so we wrap it in a try/catch to catch any weird problems
+                // with casting or other NbtExceptions that occur during use.
+                result = (Tag) serializer.serialize(value);
+            }catch (Exception e){
+                throw new NbtException("Exception parsing tag for "+value.getClass().getName()+" ("+value+")",e);
+            }
+        }
+
+        return result; // Null indicates "could not parse"
     }
 
     private Tag toTag(Object value, Class<? extends Tag> type) {

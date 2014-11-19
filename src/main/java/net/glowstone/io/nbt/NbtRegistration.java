@@ -48,7 +48,7 @@ public final class NbtRegistration {
      *
      * @return The found serializer, or null if none found
      */
-    public NbtSerializer getSerializer(Object obj) {
+    public static NbtSerializer getSerializer(Object obj) {
         if (obj == null) throw new IllegalArgumentException("Object cannot be null");
 
         NbtSerializer serializer = null;
