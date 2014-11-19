@@ -73,9 +73,8 @@ public class AnnotatedObjectNbt implements NbtSerializer<Object, CompoundTag> {
     }
 
     @Override
-    public Object deserialize(CompoundTag tag) {
+    public void deserialize(CompoundTag tag, Object into) {
         // TODO
-        return null;
     }
 
     private Tag toTag(Object value) {

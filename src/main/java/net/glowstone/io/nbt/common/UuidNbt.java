@@ -6,13 +6,14 @@ import net.glowstone.util.nbt.CompoundTag;
 import java.util.UUID;
 
 public class UuidNbt implements NbtSerializer<UUID, CompoundTag> {
+
     @Override
     public CompoundTag serialize(UUID obj) {
         return null;
     }
 
     @Override
-    public UUID deserialize(CompoundTag tag) {
-        return null;
+    public void deserialize(CompoundTag tag, UUID into) {
+
     }
 }

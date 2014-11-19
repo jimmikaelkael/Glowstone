@@ -6,13 +6,15 @@ import net.glowstone.util.nbt.ListTag;
 import org.bukkit.util.Vector;
 
 public class VectorNbt implements NbtSerializer<Vector, ListTag<IntTag>> {
+
     @Override
     public ListTag<IntTag> serialize(Vector obj) {
         return null;
     }
 
     @Override
-    public Vector deserialize(ListTag<IntTag> tag) {
-        return null;
+    public void deserialize(ListTag<IntTag> tag, Vector into) {
+
     }
+
 }
