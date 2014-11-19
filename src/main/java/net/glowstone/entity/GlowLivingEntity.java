@@ -87,7 +87,7 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * Whether the entity should be removed if it is too distant from players.
      */
-    private transient boolean removeDistance;
+    private boolean removeDistance;
 
     /**
      * Whether the (non-Player) entity can pick up armor and tools.

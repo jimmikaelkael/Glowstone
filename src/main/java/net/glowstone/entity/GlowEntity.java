@@ -52,27 +52,27 @@ public abstract class GlowEntity implements Entity {
     /**
      * The metadata store for entities.
      */
-    private static final transient MetadataStore<Entity> bukkitMetadata = new EntityMetadataStore();
+    private static final MetadataStore<Entity> bukkitMetadata = new EntityMetadataStore();
 
     /**
      * The server this entity belongs to.
      */
-    protected final transient GlowServer server;
+    protected final GlowServer server;
 
     /**
      * The entity's metadata.
      */
-    protected final transient MetadataMap metadata = new MetadataMap(getClass());
+    protected final MetadataMap metadata = new MetadataMap(getClass());
 
     /**
      * The world this entity belongs to.
      */
-    protected transient GlowWorld world;
+    protected GlowWorld world;
 
     /**
      * A flag indicating if this entity is currently active.
      */
-    protected transient boolean active = true;
+    protected boolean active = true;
 
     /**
      * This entity's unique id.
@@ -83,7 +83,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * This entity's current identifier for its world.
      */
-    protected transient int id;
+    protected int id;
 
     /**
      * The current position.
@@ -94,7 +94,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * The position in the last cycle.
      */
-    protected final transient Location previousLocation;
+    protected final Location previousLocation;
 
     /**
      * The entity's velocity, applied each tick.
@@ -105,17 +105,17 @@ public abstract class GlowEntity implements Entity {
     /**
      * Whether the entity should have its position resent as if teleported.
      */
-    protected transient boolean teleported = false;
+    protected boolean teleported = false;
 
     /**
      * Whether the entity should have its velocity resent.
      */
-    protected transient boolean velocityChanged = false;
+    protected boolean velocityChanged = false;
 
     /**
      * An EntityDamageEvent representing the last damage cause on this entity.
      */
-    private transient EntityDamageEvent lastDamageCause;
+    private EntityDamageEvent lastDamageCause;
 
     /**
      * A flag indicting if the entity is on the ground
@@ -132,7 +132,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * A counter of how long this entity has existed
      */
-    private transient int ticksLived = 0;
+    private int ticksLived = 0;
 
     /**
      * How long the entity has been on fire, or 0 if it is not.

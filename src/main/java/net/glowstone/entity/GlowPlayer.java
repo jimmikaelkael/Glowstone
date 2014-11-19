@@ -63,43 +63,43 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * A static entity id to use when telling the client about itself.
      */
-    private static final transient int SELF_ID = 0;
+    private static final int SELF_ID = 0;
 
     /**
      * This player's session.
      */
-    private final transient GlowSession session;
+    private final GlowSession session;
 
     /**
      * The entities that the client knows about.
      */
-    private final transient Set<GlowEntity> knownEntities = new HashSet<>();
+    private final Set<GlowEntity> knownEntities = new HashSet<>();
 
     /**
      * The entities that are hidden from the client.
      */
-    private final transient Set<UUID> hiddenEntities = new HashSet<>();
+    private final Set<UUID> hiddenEntities = new HashSet<>();
 
     /**
      * The chunks that the client knows about.
      */
-    private final transient Set<GlowChunk.Key> knownChunks = new HashSet<>();
+    private final Set<GlowChunk.Key> knownChunks = new HashSet<>();
 
     /**
      * A queue of BlockChangeMessages to be sent.
      */
-    private final transient List<BlockChangeMessage> blockChanges = new LinkedList<>();
+    private final List<BlockChangeMessage> blockChanges = new LinkedList<>();
 
     /**
      * A queue of messages that should be sent after block changes are processed.
      * Used for sign updates and other situations where the block must be sent first.
      */
-    private final transient List<Message> afterBlockChanges = new LinkedList<>();
+    private final List<Message> afterBlockChanges = new LinkedList<>();
 
     /**
      * The set of plugin channels this player is listening on
      */
-    private final transient Set<String> listeningChannels = new HashSet<>();
+    private final Set<String> listeningChannels = new HashSet<>();
 
     /**
      * The player's statistics, achievements, and related data.
@@ -129,27 +129,27 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * The settings sent by the client.
      */
-    private transient ClientSettings settings = ClientSettings.DEFAULT;
+    private ClientSettings settings = ClientSettings.DEFAULT;
 
     /**
      * The lock used to prevent chunks from unloading near the player.
      */
-    private transient ChunkManager.ChunkLock chunkLock;
+    private ChunkManager.ChunkLock chunkLock;
 
     /**
      * The tracker for changes to the currently open inventory.
      */
-    private transient InventoryMonitor invMonitor;
+    private InventoryMonitor invMonitor;
 
     /**
      * The display name of this player, for chat purposes.
      */
-    private transient String displayName;
+    private String displayName;
 
     /**
      * The name a player has in the player list
      */
-    private transient String playerListName;
+    private String playerListName;
 
     /**
      * Cumulative amount of experience points the player has collected.
@@ -190,37 +190,37 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * Whether to perform special scaling of the player's health.
      */
-    private transient boolean healthScaled = false;
+    private boolean healthScaled = false;
 
     /**
      * The scale at which to display the player's health.
      */
-    private transient double healthScale = 20;
+    private double healthScale = 20;
 
     /**
      * This player's current time offset.
      */
-    private transient long timeOffset = 0;
+    private long timeOffset = 0;
 
     /**
      * Whether the time offset is relative.
      */
-    private transient boolean timeRelative = true;
+    private boolean timeRelative = true;
 
     /**
      * The player-specific weather, or null for normal weather.
      */
-    private transient WeatherType playerWeather = null;
+    private WeatherType playerWeather = null;
 
     /**
      * The player's compass target.
      */
-    private transient Location compassTarget;
+    private Location compassTarget;
 
     /**
      * Whether this player's sleeping state is ignored when changing time.
      */
-    private transient boolean sleepingIgnored;
+    private boolean sleepingIgnored;
 
     /**
      * The bed spawn location of a player
@@ -231,17 +231,17 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * The location of the sign the player is currently editing, or null.
      */
-    private transient Location signLocation;
+    private Location signLocation;
 
     /**
      * Whether the player is permitted to fly.
      */
-    private transient boolean canFly;
+    private boolean canFly;
 
     /**
      * Whether the player is currently flying.
      */
-    private transient boolean flying;
+    private boolean flying;
 
     /**
      * The player's base flight speed.

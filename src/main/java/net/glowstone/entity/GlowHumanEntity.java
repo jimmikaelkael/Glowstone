@@ -67,12 +67,12 @@ public abstract class GlowHumanEntity extends GlowLivingEntity implements HumanE
     /**
      * This human's PermissibleBase for permissions.
      */
-    protected transient PermissibleBase permissions;
+    protected PermissibleBase permissions;
 
     /**
      * Whether this human is considered an op.
      */
-    private transient boolean isOp;
+    private boolean isOp;
 
     /**
      * The player's active game mode
@@ -83,7 +83,7 @@ public abstract class GlowHumanEntity extends GlowLivingEntity implements HumanE
     /**
      * The player's currently open inventory
      */
-    private transient InventoryView inventoryView;
+    private InventoryView inventoryView;
 
     /**
      * Creates a human within the specified world and with the specified name.
