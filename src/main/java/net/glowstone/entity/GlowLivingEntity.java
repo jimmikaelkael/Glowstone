@@ -6,6 +6,7 @@ import net.glowstone.constants.GlowPotionEffect;
 import net.glowstone.inventory.EquipmentMonitor;
 import net.glowstone.net.message.play.entity.EntityEquipmentMessage;
 import net.glowstone.util.nbt.NBT;
+import net.glowstone.util.nbt.ShortTag;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -32,13 +33,13 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * Potion effects on the entity.
      */
-    @NBT(value = "ActiveEffects", root = true)
+    @NBT(value = "ActiveEffects")
     private final Map<PotionEffectType, PotionEffect> potionEffects = new HashMap<>();
 
     /**
      * The entity's health.
      */
-    @NBT(value = "HealF", root = true)
+    @NBT(value = "HealF")
     protected double health;
 
     /**
@@ -54,7 +55,7 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * How long the entity has until it runs out of air.
      */
-    @NBT(value = "Air", root = true)
+    @NBT(value = "Air", type = ShortTag.class)
     private int airTicks = 300;
 
     /**
@@ -75,13 +76,13 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * A custom overhead name to be shown for non-Players.
      */
-    @NBT(value = "CustomName", root = true)
+    @NBT(value = "CustomName", optional = true)
     private String customName;
 
     /**
      * Whether the custom name is shown.
      */
-    @NBT(value = "CustomNameVisible", root = true)
+    @NBT(value = "CustomNameVisible", optional = true)
     private boolean customNameVisible;
 
     /**
@@ -92,13 +93,13 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * Whether the (non-Player) entity can pick up armor and tools.
      */
-    @NBT(value = "CanPickUpLoot", root = true)
+    @NBT(value = "CanPickUpLoot")
     private boolean pickupItems;
 
     /**
      * Monitor for the equipment of this entity.
      */
-    @NBT(value = "EntityEquipment", root = true)
+    @NBT(value = "EntityEquipment")
     private EquipmentMonitor equipmentMonitor = new EquipmentMonitor(this);
 
     // TODO Add DropChances maybe?

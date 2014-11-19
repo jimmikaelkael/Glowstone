@@ -10,6 +10,7 @@ import net.glowstone.entity.meta.MetadataMap;
 import net.glowstone.net.message.play.entity.*;
 import net.glowstone.util.Position;
 import net.glowstone.util.nbt.NBT;
+import net.glowstone.util.nbt.ShortTag;
 import org.apache.commons.lang.Validate;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
@@ -83,6 +84,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * This entity's current identifier for its world.
      */
+    @NBT("id")
     protected int id;
 
     /**
@@ -99,7 +101,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * The entity's velocity, applied each tick.
      */
-    @NBT(value = "Motion", root = true)
+    @NBT(value = "Motion")
     protected final Vector velocity = new Vector();
 
     /**
@@ -120,13 +122,13 @@ public abstract class GlowEntity implements Entity {
     /**
      * A flag indicting if the entity is on the ground
      */
-    @NBT(value = "OnGround", root = true)
+    @NBT(value = "OnGround")
     private boolean onGround = true;
 
     /**
      * The distance the entity is currently falling without touching the ground.
      */
-    @NBT(value = "FallDistance", root = true)
+    @NBT(value = "FallDistance")
     private float fallDistance;
 
     /**
@@ -137,7 +139,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * How long the entity has been on fire, or 0 if it is not.
      */
-    @NBT("Fire")
+    @NBT(value = "Fire", type = ShortTag.class)
     private int fireTicks = 0;
 
     /**

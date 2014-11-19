@@ -9,6 +9,7 @@ import net.glowstone.constants.*;
 import net.glowstone.entity.meta.ClientSettings;
 import net.glowstone.entity.meta.MetadataIndex;
 import net.glowstone.entity.meta.MetadataMap;
+import net.glowstone.entity.meta.PlayerAbilities;
 import net.glowstone.entity.meta.profile.PlayerProfile;
 import net.glowstone.inventory.GlowInventory;
 import net.glowstone.inventory.InventoryMonitor;
@@ -154,37 +155,37 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * Cumulative amount of experience points the player has collected.
      */
-    @NBT(value = "XpTotal", root = true)
+    @NBT("XpTotal")
     private int totalExperience = 0;
 
     /**
      * The current level (or skill point amount) of the player.
      */
-    @NBT(value = "XpLevel", root = true)
+    @NBT("XpLevel")
     private int level = 0;
 
     /**
      * The progress made to the next level, from 0 to 1.
      */
-    @NBT(value = "XpP", root = true)
+    @NBT("XpP")
     private float experience = 0;
 
     /**
      * The human entity's current food level
      */
-    @NBT(value = "foodLevel", root = true)
+    @NBT("foodLevel")
     private int food = 20;
 
     /**
      * The player's current exhaustion level.
      */
-    @NBT(value = "foodExhaustionLevel", root = true)
+    @NBT("foodExhaustionLevel")
     private float exhaustion = 0;
 
     /**
      * The player's current saturation level.
      */
-    @NBT(value = "foodSaturationLevel", root = true)
+    @NBT("foodSaturationLevel")
     private float saturation = 0;
 
     /**
@@ -225,7 +226,7 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     /**
      * The bed spawn location of a player
      */
-    @NBT(value = "SpawnLocation", root = true)
+    @NBT(value = "SpawnLocation", optional = true)
     private Location bedSpawn;
 
     /**
@@ -234,26 +235,10 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
     private Location signLocation;
 
     /**
-     * Whether the player is permitted to fly.
+     * The player's abilities
      */
-    private boolean canFly;
-
-    /**
-     * Whether the player is currently flying.
-     */
-    private boolean flying;
-
-    /**
-     * The player's base flight speed.
-     */
-    @NBT(value = "flySpeed")
-    private float flySpeed = 0.1f;
-
-    /**
-     * The player's base walking speed.
-     */
-    @NBT(value = "walkSpeed")
-    private float walkSpeed = 0.2f;
+    @NBT("abilities")
+    private PlayerAbilities abilities;
 
     /**
      * Creates a new player and adds it to the world.
@@ -949,54 +934,54 @@ public final class GlowPlayer extends GlowHumanEntity implements Player {
 
     @Override
     public boolean getAllowFlight() {
-        return canFly;
+        return abilities.canFly();
     }
 
     @Override
     public void setAllowFlight(boolean flight) {
-        canFly = flight;
-        if (!canFly) flying = false;
+        abilities.setCanFly(flight);
+        if(flight) abilities.setFlying(false);
         sendAbilities();
     }
 
     @Override
     public boolean isFlying() {
-        return flying;
+        return abilities.isFlying();
     }
 
     @Override
     public void setFlying(boolean value) {
-        flying = value && canFly;
+        abilities.setFlying(value && abilities.canFly());
         sendAbilities();
     }
 
     @Override
     public float getFlySpeed() {
-        return flySpeed;
+        return abilities.getFlySpeed();
     }
 
     @Override
     public void setFlySpeed(float value) throws IllegalArgumentException {
-        flySpeed = value;
+        abilities.setFlySpeed(value);
         sendAbilities();
     }
 
     @Override
     public float getWalkSpeed() {
-        return walkSpeed;
+        return abilities.getWalkSpeed();
     }
 
     @Override
     public void setWalkSpeed(float value) throws IllegalArgumentException {
-        walkSpeed = value;
+        abilities.setWalkSpeed(value);
         sendAbilities();
     }
 
     private void sendAbilities() {
         boolean creative = getGameMode() == GameMode.CREATIVE;
-        int flags = (creative ? 8 : 0) | (canFly ? 4 : 0) | (flying ? 2 : 0) | (creative ? 1 : 0);
+        int flags = (creative ? 8 : 0) | (abilities.canFly() ? 4 : 0) | (abilities.isFlying() ? 2 : 0) | (creative ? 1 : 0);
         // division is conversion from Bukkit to MC units
-        session.send(new PlayerAbilitiesMessage(flags, flySpeed / 2f, walkSpeed / 2f));
+        session.send(new PlayerAbilitiesMessage(flags, abilities.getFlySpeed() / 2f, abilities.getWalkSpeed() / 2f));
     }
 
     ////////////////////////////////////////////////////////////////////////////

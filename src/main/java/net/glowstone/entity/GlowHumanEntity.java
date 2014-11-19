@@ -77,7 +77,7 @@ public abstract class GlowHumanEntity extends GlowLivingEntity implements HumanE
     /**
      * The player's active game mode
      */
-    @NBT(value = "playerGameType", root = true)
+    @NBT(value = "playerGameType")
     private GameMode gameMode;
 
     /**
