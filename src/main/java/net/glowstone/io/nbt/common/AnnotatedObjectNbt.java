@@ -15,7 +15,7 @@ import java.util.Map;
  * If the field is annotated with <code>root = true</code>, then this will permit
  * the overwriting of values without warning.
  */
-public class TaggedObjectNbt implements NbtSerializer<Object, CompoundTag> {
+public class AnnotatedObjectNbt implements NbtSerializer<Object, CompoundTag> {
 
     @Override
     public CompoundTag serialize(Object obj) {

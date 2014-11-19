@@ -20,12 +20,12 @@ import java.util.UUID;
 public final class NbtRegistration {
 
     private static final Map<Class<?>, NbtSerializer> BY_TYPE;
-    private static final NbtSerializer TAGGED_SERIALIZER = new TaggedObjectNbt();
+    private static final NbtSerializer TAGGED_SERIALIZER = new AnnotatedObjectNbt();
 
     static {
         Map<Class<?>, NbtSerializer> registrations = new HashMap<>();
 
-        // Note: Do not register TaggedObjectNbt as it will (likely) never be used through
+        // Note: Do not register AnnotatedObjectNbt as it will (likely) never be used through
         // the collection.
 
         registrations.put(GameMode.class, new GameModeNbt());
