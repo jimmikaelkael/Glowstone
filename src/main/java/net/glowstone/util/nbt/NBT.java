@@ -54,4 +54,14 @@ public @interface NBT {
      * @return The tag type to use
      */
     Class<? extends Tag> type() default DEFAULT_TAG;
+
+    /**
+     * Gets or sets whether or not this NBT tag may be missing from the NBT
+     * file. If missing and this is true, the field is not modified. If
+     * missing and this is false, the deserializer will fail. If the value
+     * is not missing, the field will be set.
+     *
+     * @return True if this field is optional, false otherwise
+     */
+    boolean optional() default false;
 }
