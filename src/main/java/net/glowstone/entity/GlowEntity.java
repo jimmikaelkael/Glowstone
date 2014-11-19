@@ -10,7 +10,9 @@ import net.glowstone.entity.meta.MetadataMap;
 import net.glowstone.net.message.play.entity.*;
 import net.glowstone.util.Position;
 import net.glowstone.util.nbt.NBT;
+import net.glowstone.util.nbt.NbtData;
 import net.glowstone.util.nbt.ShortTag;
+import net.glowstone.util.nbt.data.EntityTypeNbtData;
 import org.apache.commons.lang.Validate;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
@@ -36,6 +38,8 @@ import java.util.UUID;
 
 /**
  * Represents some entity in the world such as an item on the floor or a player.
+ * Entities that are to be saved/loaded from NBT should have at least one constructor that
+ * accepts a Location.
  * @author Graham Edgecombe
  */
 public abstract class GlowEntity implements Entity {
@@ -84,13 +88,20 @@ public abstract class GlowEntity implements Entity {
     /**
      * This entity's current identifier for its world.
      */
-    @NBT("id")
     protected int id;
+
+    /**
+     * This entity's NBT identifier. Leverages the EntityType of this entity to
+     * determine which value to save to NBT. Loading is not handled and therefore
+     * this value is safe from modifications.
+     */
+    @NBT("id")
+    private final NbtData entityType = new EntityTypeNbtData(this);
 
     /**
      * The current position.
      */
-    @NBT(value = "Location", root = true)
+    @NBT(value = "Location", root = true, readonly = true)
     protected final Location location;
 
     /**

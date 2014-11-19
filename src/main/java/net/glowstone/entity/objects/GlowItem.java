@@ -36,6 +36,14 @@ public final class GlowItem extends GlowEntity implements Item {
     /**
      * Creates a new item entity.
      * @param location The location of the entity.
+     */
+    public GlowItem(Location location) {
+        this(location, null);
+    }
+
+    /**
+     * Creates a new item entity.
+     * @param location The location of the entity.
      * @param item The item stack the entity is carrying.
      */
     public GlowItem(Location location, ItemStack item) {

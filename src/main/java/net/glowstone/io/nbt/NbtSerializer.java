@@ -14,19 +14,19 @@ public interface NbtSerializer<T, K> {
      */
     public class NbtException extends RuntimeException {
 
-        public NbtException(){
+        public NbtException() {
             super();
         }
 
-        public NbtException(String message){
+        public NbtException(String message) {
             super(message);
         }
 
-        public NbtException(Exception parent){
+        public NbtException(Exception parent) {
             super(parent);
         }
 
-        public NbtException(String message, Exception parent){
+        public NbtException(String message, Exception parent) {
             super(message, parent);
         }
     }
@@ -43,14 +43,16 @@ public interface NbtSerializer<T, K> {
 
     /**
      * Deserializes the supplied tag into an object. Implementations are
-     * expected to reject null or otherwise invalid types.
+     * expected to reject null or otherwise invalid types, including tags
+     * that do not fit the full specification of the serializer. An example of
+     * an invalid tag would be a compound tag that is missing a key required
+     * for full deserialization of the specified object.
      *
-     * @param tag The tag to deserialize, cannot be null
-     *
-     * @return An object representing the tag, never null
+     * @param tag  The tag to deserialize, cannot be null
+     * @param into The object to deserialize into, cannot be null
      *
      * @throws net.glowstone.io.nbt.NbtSerializer.NbtException Thrown if the
      * supplied tag cannot be converted to a valid object.
      */
-    T deserialize(K tag);
+    void deserialize(K tag, T into);
 }

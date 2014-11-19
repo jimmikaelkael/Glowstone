@@ -28,20 +28,23 @@ public class PlayerAbilities {
     @NBT("invulnerable")
     private boolean invulnerable;
 
+    // Note: Bukkit's API expects a walk/fly speed that is 2x vanilla. But in order to not break
+    // the NBT serialization, they are maintained as "vanilla" values in the variable.
+
     public float getWalkSpeed() {
-        return walkSpeed;
+        return walkSpeed * 2f;
     }
 
     public void setWalkSpeed(float f) {
-        walkSpeed = f;
+        walkSpeed = f / 2f;
     }
 
     public float getFlySpeed() {
-        return flySpeed;
+        return flySpeed * 2f;
     }
 
     public void setFlySpeed(float f) {
-        flySpeed = f;
+        flySpeed = f / 2f;
     }
 
     public boolean canBuild() {

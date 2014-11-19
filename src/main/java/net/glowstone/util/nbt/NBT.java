@@ -64,4 +64,14 @@ public @interface NBT {
      * @return True if this field is optional, false otherwise
      */
     boolean optional() default false;
+
+    /**
+     * Gets or sets whether or not this field is readonly. If true then
+     * deserialization will not modify the field's contents. If false, then
+     * deserialization may modify the field's contents. Fields of the type
+     * {@link net.glowstone.util.nbt.NbtData} are always considered readonly.
+     *
+     * @return True if readonly, false otherwise
+     */
+    boolean readonly() default false;
 }
