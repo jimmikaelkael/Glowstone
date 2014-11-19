@@ -33,13 +33,13 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * Potion effects on the entity.
      */
-    @NBT(value = "ActiveEffects")
+    @NBT("ActiveEffects")
     private final Map<PotionEffectType, PotionEffect> potionEffects = new HashMap<>();
 
     /**
      * The entity's health.
      */
-    @NBT(value = "HealF")
+    @NBT("HealF")
     protected double health;
 
     /**
@@ -93,13 +93,13 @@ public abstract class GlowLivingEntity extends GlowEntity implements LivingEntit
     /**
      * Whether the (non-Player) entity can pick up armor and tools.
      */
-    @NBT(value = "CanPickUpLoot")
+    @NBT("CanPickUpLoot")
     private boolean pickupItems;
 
     /**
      * Monitor for the equipment of this entity.
      */
-    @NBT(value = "EntityEquipment")
+    @NBT("EntityEquipment")
     private EquipmentMonitor equipmentMonitor = new EquipmentMonitor(this);
 
     // TODO Add DropChances maybe?

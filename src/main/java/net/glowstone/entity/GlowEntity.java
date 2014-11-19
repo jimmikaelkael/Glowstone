@@ -101,7 +101,7 @@ public abstract class GlowEntity implements Entity {
     /**
      * The entity's velocity, applied each tick.
      */
-    @NBT(value = "Motion")
+    @NBT("Motion")
     protected final Vector velocity = new Vector();
 
     /**
@@ -122,13 +122,13 @@ public abstract class GlowEntity implements Entity {
     /**
      * A flag indicting if the entity is on the ground
      */
-    @NBT(value = "OnGround")
+    @NBT("OnGround")
     private boolean onGround = true;
 
     /**
      * The distance the entity is currently falling without touching the ground.
      */
-    @NBT(value = "FallDistance")
+    @NBT("FallDistance")
     private float fallDistance;
 
     /**
