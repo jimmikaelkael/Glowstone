@@ -1,9 +1,7 @@
 package net.glowstone.generator.populators;
 
 import net.glowstone.GlowChunk;
-import net.glowstone.generator.structures.GlowJungleTemple;
-import net.glowstone.generator.structures.GlowStructurePiece;
-import net.glowstone.generator.structures.GlowWitchHut;
+import net.glowstone.generator.structures.*;
 import net.glowstone.util.BlockStateDelegate;
 
 import org.bukkit.Chunk;
@@ -43,10 +41,13 @@ public class StructurePopulator extends BlockPopulator {
             final int z = source.getZ() << 4;
             if (!structures.containsKey(key)) {
                 GlowStructurePiece structure;
-                if (random.nextBoolean()) {
+                final int n = random.nextInt(3);
+                if (n == 0) {
                     structure = new GlowWitchHut(random, new Location(world, x, world.getSeaLevel(), z));
-                } else {
+                } else if (n == 1) {
                     structure = new GlowJungleTemple(random, new Location(world, x, world.getSeaLevel(), z));
+                } else {
+                    structure = new GlowDesertTemple(random, new Location(world, x, world.getSeaLevel(), z));
                 }
                 if (shouldGenerate(random, source.getX(), source.getZ()) && structure.getBoundingBox().intersectsWith(x, z, x + 15, z + 15)) {
                     structures.put(key, structure);
