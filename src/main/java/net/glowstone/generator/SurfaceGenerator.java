@@ -1,185 +1,255 @@
 package net.glowstone.generator;
 
+import net.glowstone.GlowWorld;
+import net.glowstone.constants.GlowBiome;
+import net.glowstone.constants.GlowBiome.BiomeHeight;
+import net.glowstone.generator.ground.*;
 import net.glowstone.generator.populators.*;
 import net.glowstone.generator.populators.overworld.*;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.World.Environment;
+import org.bukkit.WorldType;
+import org.bukkit.block.Biome;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.util.noise.OctaveGenerator;
+import org.bukkit.util.noise.PerlinOctaveGenerator;
 import org.bukkit.util.noise.SimplexOctaveGenerator;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import static org.bukkit.block.Biome.*;
 
 /**
  * Basic generator with lots of hills.
  */
 public class SurfaceGenerator extends GlowChunkGenerator {
 
+    private static final double COORDINATE_SCALE = 1024.0D;    // coordinateScale
+    private static final double HEIGHT_SCALE = 512.0D;         // heightScale
+    private static final double HEIGHT_NOISE_SCALE_X = 200.0D; // depthNoiseScaleX
+    private static final double HEIGHT_NOISE_SCALE_Z = 200.0D; // depthNoiseScaleZ
+    private static final double DETAIL_NOISE_SCALE_X = 80.0D;  // mainNoiseScaleX
+    private static final double DETAIL_NOISE_SCALE_Y = 160.0D; // mainNoiseScaleY
+    private static final double DETAIL_NOISE_SCALE_Z = 80.0D;  // mainNoiseScaleZ
+    private static final double SURFACE_SCALE = 0.033666667D;
+    private static final double BASE_SIZE = 8.5D;              // baseSize
+    private static final double STRETCH_Y = 12.0D;             // stretchY
+    private static final double BIOME_HEIGHT_OFFSET = 0.0D;    // biomeDepthOffset
+    private static final double BIOME_HEIGHT_WEIGHT = 1.0D;    // biomeDepthWeight
+    private static final double BIOME_SCALE_OFFSET = 0.0D;     // biomeScaleOffset
+    private static final double BIOME_SCALE_WEIGHT = 1.0D;     // biomeScaleWeight
+    private static final int SEA_LEVEL = 64;
+    private static final double[] ELEVATION_WEIGHT = new double[5 * 5];
+    private static final Map<Biome, GroundGenerator> GROUND_MAP = new HashMap<>();
+
+    private final double[] density = new double[5 * 33 * 5];
+
     public SurfaceGenerator() {
         super(new OverworldPopulator(),
               new SnowPopulator());
     }
 
-    private OctaveGenerator height;
+    @Override
+    public byte[][] generateBlockSections(World world, Random random, int chunkX, int chunkZ, BiomeGrid biomes) {
+        final byte[][] buf = generateRawTerrain(world, chunkX, chunkZ);
 
-    private OctaveGenerator density;
-    private OctaveGenerator roughness;
-    private OctaveGenerator detail;
+        final OctaveGenerator noiseSurface = getWorldOctaves(world).get("surface");
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                final GroundGenerator groundGen = GROUND_MAP.get(biomes.getBiome(x, z));
+                double surfaceNoise = noiseSurface.noise((chunkX << 4) + x, (chunkZ << 4) + z, 0.85D, 1.49998D);
+                groundGen.generateTerrainColumn(buf, random, x, z, SEA_LEVEL, surfaceNoise);
+            }
+        }
+        return buf;
+    }
 
     @Override
-    public byte[] generate(World world, Random random, int chunkX, int chunkZ) {
-        /*if (density == null)*/ createWorldOctaves(world, null);
+    public boolean canSpawn(World world, int x, int z) {
+        final Block block = world.getHighestBlockAt(x, z).getRelative(BlockFace.DOWN);
+        return block.getType() == Material.GRASS;
+    }
 
-        chunkX <<= 4;
-        chunkZ <<= 4;
+    @Override
+    protected void createWorldOctaves(World world, Map<String, OctaveGenerator> octaves) {
+        final Random seed = new Random(world.getSeed());
 
-        boolean nether = world.getEnvironment() == Environment.NETHER;
-        Material matMain = nether ? Material.NETHERRACK : Material.DIRT;
-        Material matShore = nether ? Material.SOUL_SAND : Material.SAND;
-        Material matShore2 = Material.GRAVEL;
-        Material matTop = nether ? Material.NETHERRACK : Material.GRASS;
-        Material matUnder = nether ? Material.NETHERRACK : Material.STONE;
-        Material matLiquid = nether ? Material.STATIONARY_LAVA : Material.STATIONARY_WATER;
+        OctaveGenerator gen = new PerlinOctaveGenerator(seed, 16);
+        gen.setXScale(HEIGHT_NOISE_SCALE_X);
+        gen.setZScale(HEIGHT_NOISE_SCALE_Z);
+        octaves.put("height", gen);
 
-        byte[] buf = start(Material.AIR);
+        gen = new PerlinOctaveGenerator(seed, 16);
+        gen.setXScale(COORDINATE_SCALE);
+        gen.setYScale(HEIGHT_SCALE);
+        gen.setZScale(COORDINATE_SCALE);
+        octaves.put("roughness", gen);
 
-        int baseHeight = WORLD_DEPTH / 2;
-        double terrainHeight = 50;
-        boolean noDirt = true;
-        int waterLevel = WORLD_DEPTH / 2;
+        gen = new PerlinOctaveGenerator(seed, 8);
+        gen.setXScale(COORDINATE_SCALE / DETAIL_NOISE_SCALE_X);
+        gen.setYScale(HEIGHT_SCALE / DETAIL_NOISE_SCALE_Y);
+        gen.setZScale(COORDINATE_SCALE / DETAIL_NOISE_SCALE_Z);
+        octaves.put("detail", gen);
 
-        for (int ix = 0; ix < 16; ix++) {
-            for (int iz = 0; iz < 16; iz++) {
-                int deep = 0;
-                int x = ix + chunkX;
-                int z = iz + chunkZ;
+        gen = new SimplexOctaveGenerator(seed, 4);
+        gen.setScale(SURFACE_SCALE);
+        octaves.put("surface", gen);
+    }
 
-                // height is sea or noise
-                double h = height.noise(x, z, 2.5, 0.9, true);
-                if (h > 0) {
-                    int top = 0;
-                    for (int y = 127; y > 0; y--) {
-                        double finalDensity;
-                        if (h < 0.15) {
-                            // linear interpolation
-                            finalDensity =
-                                    (h * (20 / 3.0)) * grasslandDensity(x, y, z) +
-                                    (1 - (20 / 3.0) * h) * seaDensity(x, y, z);
-                        } else {
-                            finalDensity = grasslandDensity(x, y, z);
-                        }
-                        if (finalDensity > 0) {
-                            if (y > top) top = y;
+    @SuppressWarnings("deprecation")
+    private void set(byte[][] buf, int x, int y, int z, Material id) {
+        if (buf[y >> 4] == null) {
+            buf[y >> 4] = new byte[4096];
+        }
+        buf[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = (byte) id.getId();
+    }
 
-                            if (y == top) {
-                                if (y <= 60) {
-                                    set(buf, ix, y, iz, Material.DIRT);
-                                } else {
-                                    if (h < 0.15) {
-                                        set(buf, ix, y, iz, Material.SAND);
-                                    } else {
-                                        set(buf, ix, y, iz, Material.GRASS);
-                                    }
+    private byte[][] generateRawTerrain(World world, int chunkX, int chunkZ) {
+        generateTerrainDensity(world, chunkX * 4, chunkZ * 4);
+
+        final byte[][] buf = new byte[16][];
+
+        for (int i = 0; i < 5 - 1; i++) {
+            for (int j = 0; j < 5 - 1; j++) {
+                for (int k = 0; k < 33 - 1; k++) {
+                    double d1 = density[k + (j + i * 5) * 33];
+                    double d2 = density[k + (j + (i + 1) * 5) * 33];
+                    double d3 = density[k + (j + 1 + i * 5) * 33];
+                    double d4 = density[k + (j + 1 + (i + 1) * 5) * 33];
+                    double d5 = (density[k + 1 + (j + i * 5) * 33] - d1) / 8.0D;
+                    double d6 = (density[k + 1 + (j + (i + 1) * 5) * 33] - d2) / 8.0D;
+                    double d7 = (density[k + 1 + (j + 1 + i * 5) * 33] - d3) / 8.0D;
+                    double d8 = (density[k + 1 + (j + 1 + (i + 1) * 5) * 33] - d4) / 8.0D;
+
+                    for (int l = 0; l < 8; l++) {
+                        double d9 = d1;
+                        double d10 = d3;
+                        for (int m = 0; m < 4; m++) {
+                            double finalDensity = d9;
+                            for (int n = 0; n < 4; n++) {
+                                if (finalDensity > 0) {
+                                    set(buf, m + i * 4, k * 8 + l, j * 4 + n, Material.STONE);
+                                } else if (k * 8 + l < SEA_LEVEL - 1) {
+                                    set(buf, m + i * 4, k * 8 + l, j * 4 + n, Material.STATIONARY_WATER);
                                 }
-                            } else if (y > top - 4) {
-                                set(buf, ix, y, iz, Material.DIRT);
-                            } else {
-                                set(buf, ix, y, iz, Material.STONE);
+                                finalDensity += (d10 - d9) / 4.0D;
                             }
-                        } else if (y <= 60) {
-                            set(buf, ix, y, iz, Material.WATER);
+                            d9 += (d2 - d1) / 4.0D;
+                            d10 += (d4 - d3) / 4.0D;
                         }
-                    }
-                } else {
-                    int top = 0;
-                    for (int y = 60; y > 0; y--) {
-                        double finalDensity = seaDensity(x, y, z);
-                        if (finalDensity > 0) {
-                            if (y > top) top = y;
-
-                            if (y == top) {
-                                set(buf, ix, y, iz, Material.GRAVEL);
-                            } else if (y > top - 4) {
-                                set(buf, ix, y, iz, Material.DIRT);
-                            } else {
-                                set(buf, ix, y, iz, Material.STONE);
-                            }
-                        } else {
-                            set(buf, ix, y, iz, Material.WATER);
-                        }
+                        d1 += d5;
+                        d3 += d7;
+                        d2 += d6;
+                        d4 += d8;
                     }
                 }
-
-                set(buf, ix, 0, iz, Material.BEDROCK);
             }
         }
 
         return buf;
     }
 
-    private double grasslandDensity(int x, int y, int z) {
-        return density.noise(x, y, z, 1.2, 0.6, true)
-                - roughness.noise(x, y, z, 1.2, 0.6, true)
-                * detail.noise(x, y, z, 1.2, 0.6, true) + 50.0 / 3 - (5.0 / 24) * y;
+    private void generateTerrainDensity(World world, int x, int z) {
+        final Map<String, OctaveGenerator> octaves = getWorldOctaves(world);
+        final OctaveGenerator noiseHeight = octaves.get("height");
+        final OctaveGenerator noiseDetail = octaves.get("detail");
+        final OctaveGenerator noiseRoughness = octaves.get("roughness");
+
+        final int[] biomeData = ((GlowWorld) world).getChunkManager().getRoughBiomeMap(x - 2, z - 2, 10, 10);
+        final WorldType type = world.getWorldType();
+
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+
+                double avgHeightScale = 0;
+                double avgHeightBase = 0;
+                double totalWeight = 0;
+                final BiomeHeight biomeHeight = GlowBiome.getBiomeHeight(biomeData[i + 2 + (j + 2) * 10]);
+                for (int m = 0; m < 5; m++) {
+                    for (int n = 0; n < 5; n++) {
+                        final BiomeHeight nearBiomeHeight = GlowBiome.getBiomeHeight(biomeData[i + m + (j + n) * 10]);
+                        double heightBase = BIOME_HEIGHT_OFFSET + nearBiomeHeight.getHeight() * BIOME_HEIGHT_WEIGHT;
+                        double heightScale = BIOME_SCALE_OFFSET + nearBiomeHeight.getScale() * BIOME_SCALE_WEIGHT;
+                        if (type == WorldType.AMPLIFIED && heightBase > 0) {
+                            heightBase = 1.0D + heightBase * 2.0D;
+                            heightScale = 1.0D + heightScale * 4.0D;
+                        }
+                        double weight = ELEVATION_WEIGHT[m + n * 5] / (heightBase + 2.0D);
+                        if (nearBiomeHeight.getHeight() > biomeHeight.getHeight()) {
+                            weight *= 0.5D;
+                        }
+                        avgHeightScale += heightScale * weight;
+                        avgHeightBase += heightBase * weight;
+                        totalWeight += weight;
+                    }
+                }
+                avgHeightScale /= totalWeight;
+                avgHeightBase /= totalWeight;
+                avgHeightScale = avgHeightScale * 0.9D + 0.1D;
+                avgHeightBase = (avgHeightBase * 4.0D - 1.0D) / 8.0D;
+
+                double noiseH = noiseHeight.noise(x + i, z + j, 0.5D, 1.99998D) / 8000.0D;
+                if (noiseH < 0) {
+                    noiseH = Math.abs(noiseH) * 0.3D;
+                }
+                noiseH = noiseH * 3.0D - 2.0D;
+                if (noiseH < 0) {
+                    noiseH = Math.max(noiseH * 0.5D, -1) / 1.4D * 0.5D;
+                } else {
+                    noiseH = Math.min(noiseH, 1) / 8.0D;
+                }
+
+                noiseH = ((noiseH * 0.2D + avgHeightBase) * BASE_SIZE / 8.0D) * 4.0D + BASE_SIZE;
+                for (int k = 0; k < 33; k++) {
+                    double nH = (k - noiseH) * STRETCH_Y * (double) WORLD_DEPTH / 256.0D / avgHeightScale;
+                    if (nH < 0.0D) {
+                        nH *= 4.0D;
+                    }
+                    double noiseR = noiseRoughness.noise(x + i, k * 8, z + j, 0.5D, 1.99998D) / 512.0D;
+                    double noiseD = (noiseDetail.noise(x + i, k * 8, z + j, 0.5D, 1.99998D) / 10.0D + 1.0D) / 2.0D;
+                    if (noiseD >= 0.0D && noiseD <= 1.0D) {
+                        noiseR *= noiseD;
+                    }
+                    double dst = noiseR - nH;
+                    if (k > 29) {
+                      double lowering = (k - 29) / 3.0D;
+                      dst = dst * (1.0D - lowering) + lowering * -10.0D;
+                    }
+                    density[k + (j + i * 5) * 33] = dst;
+                }
+            }
+        }
     }
 
-    private double seaDensity(int x, int y, int z) {
-        return density.noise(x, y, z, 1.2, 0.6, true)
-                - roughness.noise(x, y, z, 1.2, 0.6, true)
-                * detail.noise(x, y, z, 1.2, 0.6, true) + (54 - y) / 3;
+    static {
+        for (Biome biome : Biome.values()) {
+            GROUND_MAP.put(biome, new GroundGenerator());
+        }
+        GROUND_MAP.put(BEACH, new SandyGroundGenerator());
+        GROUND_MAP.put(COLD_BEACH, new SandyGroundGenerator());
+        GROUND_MAP.put(DESERT, new SandyGroundGenerator());
+        GROUND_MAP.put(DESERT_HILLS, new SandyGroundGenerator());
+        GROUND_MAP.put(DESERT_MOUNTAINS, new SandyGroundGenerator());
+        GROUND_MAP.put(STONE_BEACH, new RockyGroundGenerator());
+        GROUND_MAP.put(ICE_PLAINS_SPIKES, new SnowyGroundGenerator());
+        GROUND_MAP.put(MUSHROOM_ISLAND, new MycelGroundGenerator());
+        GROUND_MAP.put(MUSHROOM_SHORE, new MycelGroundGenerator());
+        GROUND_MAP.put(EXTREME_HILLS, new RockyMountainGroundGenerator());
+        GROUND_MAP.put(EXTREME_HILLS_MOUNTAINS, new GravellyMountainGroundGenerator());
+        GROUND_MAP.put(EXTREME_HILLS_PLUS_MOUNTAINS, new GravellyMountainGroundGenerator());
+
+        for (int x = 0; x < 5; x++) {
+            for (int z = 0; z < 5; z++) {
+                int sqX = x - 2;
+                sqX *= sqX;
+                int sqZ = z - 2;
+                sqZ *= sqZ;
+                ELEVATION_WEIGHT[z + x * 5] = 10.0F / Math.sqrt(sqX + sqZ + 0.2F);
+            }
+        }
     }
-
-    @Override
-    protected void createWorldOctaves(World world, Map<String, OctaveGenerator> octaves) {
-        Random seed = new Random(world.getSeed());
-        double largeScale = 1 / 8.0;
-
-        /* With default settings, this is 5 octaves. With tscale=256,terrainheight=50,
-         * this comes out to 14 octaves, which makes more complex terrain at the cost
-         * of more complex generation. Without this, the terrain looks bad, especially
-         * on higher tscale/terrainheight pairs. */
-        /*double value = Math.round(Math.sqrt(50 * 256.0 / (128 - 50)) * 1.1 - 0.2);
-        OctaveGenerator gen = new SimplexOctaveGenerator(seed, Math.max((int) value, 5));
-        gen.setScale(1 / 256.0);
-        octaves.put("height", gen);
-
-        gen = new SimplexOctaveGenerator(seed, gen.getOctaves().length / 2);
-        gen.setScale(Math.min(256.0 / 1024, 1 / 32.0));
-        octaves.put("jitter", gen);
-
-        gen = new SimplexOctaveGenerator(seed, 2);
-        gen.setScale(1 / WORLD_DEPTH);
-        octaves.put("type", gen);
-
-
-        octaves.put("density", gen);*/
-
-        // we don't care about y for the height so we set the scale overall
-        height = new SimplexOctaveGenerator(seed, 5);
-        height.setScale(largeScale / 32 / 8);
-
-        density = new SimplexOctaveGenerator(seed, 1);
-        density.setXScale(largeScale / 1 / 8);
-        density.setYScale(largeScale / 1 / 4);
-        density.setZScale(largeScale / 1 / 8);
-
-        roughness = new SimplexOctaveGenerator(seed, 1);
-        roughness.setXScale(largeScale / 1 / 8);
-        roughness.setYScale(largeScale / 1 / 4);
-        roughness.setZScale(largeScale / 1 / 8);
-
-        detail = new SimplexOctaveGenerator(seed, 1);
-        detail.setXScale(largeScale * 3 / 8);
-        detail.setYScale(largeScale * 3 / 4);
-        detail.setZScale(largeScale * 3 / 8);
-    }
-
-    @Override
-    public Location getFixedSpawnLocation(World world, Random random) {
-        return new Location(world, 0, 128, 0);
-    }
-
 }

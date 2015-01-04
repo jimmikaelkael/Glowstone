@@ -38,9 +38,9 @@ public final class ChunkManager {
     private final ChunkGenerator generator;
 
     /**
-     * The biome map used to fill chunks biome grid.
+     * The biome maps used to fill chunks biome grid and terrain generation.
      */
-    private final MapLayer biomeMap;
+    private final MapLayer[] biomeMap;
 
     /**
      * A map of chunks currently loaded in memory.
@@ -240,7 +240,7 @@ public final class ChunkManager {
     private void generateChunk(GlowChunk chunk, int x, int z) {
         Random random = new Random((long) x * 341873128712L + (long) z * 132897987541L);
         BiomeGrid biomes = new BiomeGrid();
-        int[] biomeValues = biomeMap.generateValues(x * GlowChunk.WIDTH, z * GlowChunk.HEIGHT, GlowChunk.WIDTH, GlowChunk.HEIGHT);
+        int[] biomeValues = biomeMap[0].generateValues(x * GlowChunk.WIDTH, z * GlowChunk.HEIGHT, GlowChunk.WIDTH, GlowChunk.HEIGHT);
         for (int i = 0;  i < biomeValues.length; i++) {
             biomes.biomes[i] = (byte) biomeValues[i];
         }
@@ -359,6 +359,14 @@ public final class ChunkManager {
         return false;
     }
 
+    public int[] getBiomeMap(int x, int z, int sizeX, int sizeZ) {
+        return biomeMap[0].generateValues(x, z, sizeX, sizeZ);
+    }
+
+    public int[] getRoughBiomeMap(int x, int z, int sizeX, int sizeZ) {
+        return biomeMap[1].generateValues(x, z, sizeX, sizeZ);
+    }
+
     /**
      * A BiomeGrid implementation for chunk generation.
      */
@@ -367,7 +375,7 @@ public final class ChunkManager {
 
         @Override
         public Biome getBiome(int x, int z) {
-            return GlowBiome.getBiome(biomes[z * 16 + x]);
+            return GlowBiome.getBiome(biomes[z * 16 + x] & 0xFF); // upcasting is very important to get extended biomes
         }
 
         @Override

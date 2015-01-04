@@ -294,7 +294,7 @@ public final class GlowWorld implements World {
                 GlowChunk chunk = getChunkAt(spawnX >> 4, spawnZ >> 4);
                 //GlowServer.logger.info("determining spawn: " + chunk.getX() + " " + chunk.getZ());
                 chunk.load(true);  // I'm not sure there's a sane way around this
-                for (int tries = 0; tries < 10 && !generator.canSpawn(this, spawnX, spawnZ); ++tries) {
+                for (int tries = 0; tries < 1000 && !generator.canSpawn(this, spawnX, spawnZ); ++tries) {
                     spawnX += random.nextInt(128) - 64;
                     spawnZ += random.nextInt(128) - 64;
                 }

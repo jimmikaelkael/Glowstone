@@ -57,7 +57,7 @@ public abstract class GlowChunkGenerator extends ChunkGenerator {
         if (fill == null) {
             throw new IllegalArgumentException("Invalid block type!");
         }
-        byte[] data = new byte[GlowChunk.HEIGHT * GlowChunk.WIDTH * WORLD_DEPTH];
+        byte[] data = new byte[GlowChunk.HEIGHT * GlowChunk.WIDTH * WORLD_DEPTH * 2];
         Arrays.fill(data, (byte) fill.getId());
         return data;
     }
@@ -80,7 +80,7 @@ public abstract class GlowChunkGenerator extends ChunkGenerator {
         if (x < 0 || y < 0 || z < 0 || x >= GlowChunk.HEIGHT || y >= GlowChunk.DEPTH || z >= GlowChunk.WIDTH) {
             return;
         }
-        data[(x * 16 + z) * 128 + y] = (byte) id.getId();
+        data[(x * 16 + z) * 256 + y] = (byte) id.getId();
     }
 
     /**
@@ -98,7 +98,7 @@ public abstract class GlowChunkGenerator extends ChunkGenerator {
         if (x < 0 || y < 0 || z < 0 || x >= GlowChunk.HEIGHT || y >= GlowChunk.DEPTH || z >= GlowChunk.WIDTH) {
             return Material.AIR;
         }
-        return Material.getMaterial(data[(x * 16 + z) * 128 + y]);
+        return Material.getMaterial(data[(x * 16 + z) * 256 + y]);
     }
 
     @Override
@@ -111,5 +111,5 @@ public abstract class GlowChunkGenerator extends ChunkGenerator {
         Block block = world.getHighestBlockAt(x, z).getRelative(BlockFace.DOWN);
         return !block.isLiquid() && !block.isEmpty() && !noSpawnFloors.contains(block.getType());
     }
-    
+
 }
