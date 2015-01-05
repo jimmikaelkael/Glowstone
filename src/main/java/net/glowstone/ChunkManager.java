@@ -1,6 +1,7 @@
 package net.glowstone;
 
 import net.glowstone.constants.GlowBiome;
+import net.glowstone.generator.GlowChunkGenerator;
 import net.glowstone.generator.biomegrid.MapLayer;
 import net.glowstone.io.ChunkIoService;
 import org.bukkit.block.Biome;
@@ -243,6 +244,27 @@ public final class ChunkManager {
         int[] biomeValues = biomeMap[0].generateValues(x * GlowChunk.WIDTH, z * GlowChunk.HEIGHT, GlowChunk.WIDTH, GlowChunk.HEIGHT);
         for (int i = 0;  i < biomeValues.length; i++) {
             biomes.biomes[i] = (byte) biomeValues[i];
+        }
+
+        // extended sections with data
+        if (generator instanceof GlowChunkGenerator) {
+            short[][] extSections = ((GlowChunkGenerator) generator).generateExtBlockSectionsWithData(world, random, x, z, biomes);
+            if (extSections != null) {
+                GlowChunk.ChunkSection[] sections = new GlowChunk.ChunkSection[extSections.length];
+                for (int i = 0; i < extSections.length; ++i) {
+                    // this is sort of messy.
+                    if (extSections[i] != null) {
+                        sections[i] = new GlowChunk.ChunkSection();
+                        for (int j = 0; j < extSections[i].length; ++j) {
+                            sections[i].types[j] = (char) extSections[i][j];
+                        }
+                        sections[i].recount();
+                    }
+                }
+                chunk.initializeSections(sections);
+                chunk.setBiomes(biomes.biomes);
+                return;
+            }
         }
 
         // extended sections

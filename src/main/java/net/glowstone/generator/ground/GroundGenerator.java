@@ -14,7 +14,7 @@ public class GroundGenerator {
         setGroundMaterial(Material.DIRT);
     }
 
-    public void generateTerrainColumn(byte[][] buf, Random random, int x, int z, int seaLevel, double surfaceNoise) {
+    public void generateTerrainColumn(short[][] buf, Random random, int x, int z, int seaLevel, double surfaceNoise) {
 
         Material topMat = topMaterial;
         Material groundMat = groundMaterial;
@@ -66,22 +66,26 @@ public class GroundGenerator {
     }
 
     @SuppressWarnings("deprecation")
-    protected final Material get(byte[][] buf, int x, int y, int z) {
+    protected final Material get(short[][] buf, int x, int y, int z) {
         if (buf[y >> 4] == null) {
             return Material.AIR;
         }
-        return Material.getMaterial(buf[y >> 4][((y & 0xF) << 8) | (z << 4) | x]);
+        return Material.getMaterial(buf[y >> 4][((y & 0xF) << 8) | (z << 4) | x] >> 4);
+    }
+
+    protected final void set(short[][] buf, int x, int y, int z, Material id) {
+        set(buf, x, y, z, id, 0);
     }
 
     @SuppressWarnings("deprecation")
-    protected final void set(byte[][] buf, int x, int y, int z, Material id) {
+    protected final void set(short[][] buf, int x, int y, int z, Material id, int data) {
         if (id.getId() == 0) {
             return;
         }
         if (buf[y >> 4] == null) {
-            buf[y >> 4] = new byte[4096];
+            buf[y >> 4] = new short[4096];
         }
-        buf[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = (byte) id.getId();
+        buf[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = (short) (((id.getId() << 4) & 0xFFF0) | data);
     }
 
     protected final void setTopMaterial(Material topMaterial) {

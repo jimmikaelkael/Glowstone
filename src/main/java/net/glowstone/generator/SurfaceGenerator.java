@@ -54,8 +54,8 @@ public class SurfaceGenerator extends GlowChunkGenerator {
     }
 
     @Override
-    public byte[][] generateBlockSections(World world, Random random, int chunkX, int chunkZ, BiomeGrid biomes) {
-        final byte[][] buf = generateRawTerrain(world, chunkX, chunkZ);
+    public short[][] generateExtBlockSectionsWithData(World world, Random random, int chunkX, int chunkZ, BiomeGrid biomes) {
+        final short[][] buf = generateRawTerrain(world, chunkX, chunkZ);
 
         final OctaveGenerator noiseSurface = getWorldOctaves(world).get("surface");
         for (int x = 0; x < 16; x++) {
@@ -101,17 +101,17 @@ public class SurfaceGenerator extends GlowChunkGenerator {
     }
 
     @SuppressWarnings("deprecation")
-    private void set(byte[][] buf, int x, int y, int z, Material id) {
+    private void set(short[][] buf, int x, int y, int z, Material id) {
         if (buf[y >> 4] == null) {
-            buf[y >> 4] = new byte[4096];
+            buf[y >> 4] = new short[4096];
         }
-        buf[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = (byte) id.getId();
+        buf[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = (short) (id.getId() << 4);
     }
 
-    private byte[][] generateRawTerrain(World world, int chunkX, int chunkZ) {
+    private short[][] generateRawTerrain(World world, int chunkX, int chunkZ) {
         generateTerrainDensity(world, chunkX * 4, chunkZ * 4);
 
-        final byte[][] buf = new byte[16][];
+        final short[][] buf = new short[16][];
 
         for (int i = 0; i < 5 - 1; i++) {
             for (int j = 0; j < 5 - 1; j++) {
