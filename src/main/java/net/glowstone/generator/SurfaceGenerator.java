@@ -47,6 +47,7 @@ public class SurfaceGenerator extends GlowChunkGenerator {
     private static final Map<Biome, GroundGenerator> GROUND_MAP = new HashMap<>();
 
     private final double[] density = new double[5 * 33 * 5];
+    private final GroundGenerator groundGen = new MesaGroundGenerator();
 
     public SurfaceGenerator() {
         super(new OverworldPopulator(),
@@ -60,9 +61,12 @@ public class SurfaceGenerator extends GlowChunkGenerator {
         final OctaveGenerator noiseSurface = getWorldOctaves(world).get("surface");
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                final GroundGenerator groundGen = GROUND_MAP.get(biomes.getBiome(x, z));
                 double surfaceNoise = noiseSurface.noise((chunkX << 4) + x, (chunkZ << 4) + z, 0.85D, 1.49998D);
-                groundGen.generateTerrainColumn(buf, random, x, z, SEA_LEVEL, surfaceNoise);
+                if (GROUND_MAP.containsKey(biomes.getBiome(x, z))) {
+                    GROUND_MAP.get(biomes.getBiome(x, z)).generateTerrainColumn(buf, random, x, z, SEA_LEVEL, surfaceNoise);
+                } else {
+                    groundGen.generateTerrainColumn(buf, random, x, z, SEA_LEVEL, surfaceNoise);
+                }
             }
         }
         return buf;
@@ -225,22 +229,22 @@ public class SurfaceGenerator extends GlowChunkGenerator {
         }
     }
 
-    static {
-        for (Biome biome : Biome.values()) {
-            GROUND_MAP.put(biome, new GroundGenerator());
+    private static void setBiomeSpecificGround(GroundGenerator gen, Biome... biomes) {
+        for (Biome biome : biomes) {
+            GROUND_MAP.put(biome, gen);
         }
-        GROUND_MAP.put(BEACH, new SandyGroundGenerator());
-        GROUND_MAP.put(COLD_BEACH, new SandyGroundGenerator());
-        GROUND_MAP.put(DESERT, new SandyGroundGenerator());
-        GROUND_MAP.put(DESERT_HILLS, new SandyGroundGenerator());
-        GROUND_MAP.put(DESERT_MOUNTAINS, new SandyGroundGenerator());
-        GROUND_MAP.put(STONE_BEACH, new RockyGroundGenerator());
-        GROUND_MAP.put(ICE_PLAINS_SPIKES, new SnowyGroundGenerator());
-        GROUND_MAP.put(MUSHROOM_ISLAND, new MycelGroundGenerator());
-        GROUND_MAP.put(MUSHROOM_SHORE, new MycelGroundGenerator());
-        GROUND_MAP.put(EXTREME_HILLS, new RockyMountainGroundGenerator());
-        GROUND_MAP.put(EXTREME_HILLS_MOUNTAINS, new GravellyMountainGroundGenerator());
-        GROUND_MAP.put(EXTREME_HILLS_PLUS_MOUNTAINS, new GravellyMountainGroundGenerator());
+    }
+
+    static {
+        setBiomeSpecificGround(new SandyGroundGenerator(), BEACH, COLD_BEACH, DESERT, DESERT_HILLS, DESERT_MOUNTAINS);
+        setBiomeSpecificGround(new RockyGroundGenerator(), STONE_BEACH);
+        setBiomeSpecificGround(new SnowyGroundGenerator(), ICE_PLAINS_SPIKES);
+        setBiomeSpecificGround(new MycelGroundGenerator(), MUSHROOM_ISLAND, MUSHROOM_SHORE);
+        setBiomeSpecificGround(new StonePatchGroundGenerator(), EXTREME_HILLS);
+        setBiomeSpecificGround(new GravelPatchGroundGenerator(), EXTREME_HILLS_MOUNTAINS, EXTREME_HILLS_PLUS_MOUNTAINS);
+        setBiomeSpecificGround(new DirtAndStonePatchGroundGenerator(), SAVANNA_MOUNTAINS, SAVANNA_PLATEAU_MOUNTAINS);
+        setBiomeSpecificGround(new DirtPatchGroundGenerator(), MEGA_TAIGA, MEGA_TAIGA_HILLS, MEGA_SPRUCE_TAIGA, MEGA_SPRUCE_TAIGA_HILLS);
+        setBiomeSpecificGround(new MesaGroundGenerator(), MESA, MESA_BRYCE, MESA_PLATEAU_FOREST, MESA_PLATEAU_FOREST_MOUNTAINS, MESA_PLATEAU, MESA_PLATEAU_MOUNTAINS);
 
         for (int x = 0; x < 5; x++) {
             for (int z = 0; z < 5; z++) {
