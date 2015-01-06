@@ -2,7 +2,6 @@ package net.glowstone.generator;
 
 import net.glowstone.GlowWorld;
 import net.glowstone.constants.GlowBiome;
-import net.glowstone.constants.GlowBiome.BiomeHeight;
 import net.glowstone.generator.ground.*;
 import net.glowstone.generator.populators.*;
 import net.glowstone.generator.populators.overworld.*;
@@ -45,9 +44,11 @@ public class SurfaceGenerator extends GlowChunkGenerator {
     private static final int SEA_LEVEL = 64;
     private static final double[] ELEVATION_WEIGHT = new double[5 * 5];
     private static final Map<Biome, GroundGenerator> GROUND_MAP = new HashMap<>();
+    private static final Map<Biome, BiomeHeight> HEIGHT_MAP = new HashMap<>();
 
     private final double[] density = new double[5 * 33 * 5];
     private final GroundGenerator groundGen = new MesaGroundGenerator();
+    private final BiomeHeight defaultHeight = BiomeHeight.DEFAULT;
 
     public SurfaceGenerator() {
         super(new OverworldPopulator(),
@@ -172,10 +173,12 @@ public class SurfaceGenerator extends GlowChunkGenerator {
                 double avgHeightScale = 0;
                 double avgHeightBase = 0;
                 double totalWeight = 0;
-                final BiomeHeight biomeHeight = GlowBiome.getBiomeHeight(biomeData[i + 2 + (j + 2) * 10]);
+                final Biome biome = GlowBiome.getBiome(biomeData[i + 2 + (j + 2) * 10]);
+                final BiomeHeight biomeHeight = HEIGHT_MAP.containsKey(biome) ? HEIGHT_MAP.get(biome) : defaultHeight;
                 for (int m = 0; m < 5; m++) {
                     for (int n = 0; n < 5; n++) {
-                        final BiomeHeight nearBiomeHeight = GlowBiome.getBiomeHeight(biomeData[i + m + (j + n) * 10]);
+                        final Biome nearBiome = GlowBiome.getBiome(biomeData[i + m + (j + n) * 10]);
+                        final BiomeHeight nearBiomeHeight = HEIGHT_MAP.containsKey(nearBiome) ? HEIGHT_MAP.get(nearBiome) : defaultHeight;
                         double heightBase = BIOME_HEIGHT_OFFSET + nearBiomeHeight.getHeight() * BIOME_HEIGHT_WEIGHT;
                         double heightScale = BIOME_SCALE_OFFSET + nearBiomeHeight.getScale() * BIOME_SCALE_WEIGHT;
                         if (type == WorldType.AMPLIFIED && heightBase > 0) {
@@ -235,6 +238,53 @@ public class SurfaceGenerator extends GlowChunkGenerator {
         }
     }
 
+    private static void setBiomeHeight(BiomeHeight height, Biome... biomes) {
+        for (Biome biome : biomes) {
+            HEIGHT_MAP.put(biome, height);
+        }
+    }
+
+    private static class BiomeHeight {
+        public static final BiomeHeight DEFAULT = new BiomeHeight(0.1D, 0.2D);
+        public static final BiomeHeight FLAT_SHORE = new BiomeHeight(0.0D, 0.025D);
+        public static final BiomeHeight HIGH_PLATEAU = new BiomeHeight(1.5D, 0.025D);
+        public static final BiomeHeight FLATLANDS = new BiomeHeight(0.125D, 0.05D);
+        public static final BiomeHeight SWAMPLAND = new BiomeHeight(-0.2D, 0.1D);
+        public static final BiomeHeight MID_PLAINS = new BiomeHeight(0.2D, 0.2D);
+        public static final BiomeHeight FLAT_HILLS = new BiomeHeight(0.275D, 0.25D); // FLATLANDS -> M
+        public static final BiomeHeight SWAMPLAND_HILLS = new BiomeHeight(-0.1D, 0.3D);
+        public static final BiomeHeight LOW_HILLS = new BiomeHeight(0.2D, 0.3D);
+        public static final BiomeHeight HILLS = new BiomeHeight(0.45D, 0.3D);
+        public static final BiomeHeight MID_HILLS3 = new BiomeHeight(0.1D, 0.4D);
+        public static final BiomeHeight MID_HILLS = new BiomeHeight(0.2D, 0.4D); // DEFAULT -> M
+        public static final BiomeHeight MID_HILLS2 = new BiomeHeight(0.3D, 0.4D); // MID_PLAINS -> M
+        public static final BiomeHeight BIG_HILLS = new BiomeHeight(0.525D, 0.55D);
+        public static final BiomeHeight BIG_HILLS2 = new BiomeHeight(0.55D, 0.5D);
+        public static final BiomeHeight EXTREME_HILLS = new BiomeHeight(1.0D, 0.5D);
+        public static final BiomeHeight ROCKY_SHORE = new BiomeHeight(0.1D, 0.8D);
+        public static final BiomeHeight LOW_SPIKES = new BiomeHeight(0.4125D, 1.325D);
+        public static final BiomeHeight HIGH_SPIKES = new BiomeHeight(1.1D, 1.3125D);
+        public static final BiomeHeight RIVER = new BiomeHeight(-0.5D, 0.0D);
+        public static final BiomeHeight OCEAN = new BiomeHeight(-1.0D, 0.1D);
+        public static final BiomeHeight DEEP_OCEAN = new BiomeHeight(-1.8D, 0.1D);
+
+        private final double height;
+        private final double scale;
+
+        public BiomeHeight(double height, double scale) {
+            this.height = height;
+            this.scale = scale;
+        }
+
+        public double getHeight() {
+            return height;
+        }
+
+        public double getScale() {
+            return scale;
+        }
+    }
+
     static {
         setBiomeSpecificGround(new SandyGroundGenerator(), BEACH, COLD_BEACH, DESERT, DESERT_HILLS, DESERT_MOUNTAINS);
         setBiomeSpecificGround(new RockyGroundGenerator(), STONE_BEACH);
@@ -245,6 +295,28 @@ public class SurfaceGenerator extends GlowChunkGenerator {
         setBiomeSpecificGround(new DirtAndStonePatchGroundGenerator(), SAVANNA_MOUNTAINS, SAVANNA_PLATEAU_MOUNTAINS);
         setBiomeSpecificGround(new DirtPatchGroundGenerator(), MEGA_TAIGA, MEGA_TAIGA_HILLS, MEGA_SPRUCE_TAIGA, MEGA_SPRUCE_TAIGA_HILLS);
         setBiomeSpecificGround(new MesaGroundGenerator(), MESA, MESA_BRYCE, MESA_PLATEAU_FOREST, MESA_PLATEAU_FOREST_MOUNTAINS, MESA_PLATEAU, MESA_PLATEAU_MOUNTAINS);
+
+        setBiomeHeight(BiomeHeight.OCEAN, OCEAN, FROZEN_OCEAN);
+        setBiomeHeight(BiomeHeight.DEEP_OCEAN, DEEP_OCEAN);
+        setBiomeHeight(BiomeHeight.RIVER, RIVER, FROZEN_RIVER);
+        setBiomeHeight(BiomeHeight.FLAT_SHORE, BEACH, COLD_BEACH, MUSHROOM_SHORE);
+        setBiomeHeight(BiomeHeight.ROCKY_SHORE, STONE_BEACH);
+        setBiomeHeight(BiomeHeight.FLATLANDS, DESERT, ICE_PLAINS, SAVANNA);
+        setBiomeHeight(BiomeHeight.EXTREME_HILLS, EXTREME_HILLS, EXTREME_HILLS_PLUS, EXTREME_HILLS_MOUNTAINS, EXTREME_HILLS_PLUS_MOUNTAINS);
+        setBiomeHeight(BiomeHeight.MID_PLAINS, TAIGA, COLD_TAIGA, MEGA_TAIGA);
+        setBiomeHeight(BiomeHeight.SWAMPLAND, SWAMPLAND);
+        setBiomeHeight(BiomeHeight.LOW_HILLS, MUSHROOM_ISLAND);
+        setBiomeHeight(BiomeHeight.HILLS, ICE_MOUNTAINS, DESERT_HILLS, FOREST_HILLS, TAIGA_HILLS, SMALL_MOUNTAINS, JUNGLE_HILLS, BIRCH_FOREST_HILLS, COLD_TAIGA_HILLS, MEGA_TAIGA_HILLS, MESA_PLATEAU_FOREST_MOUNTAINS, MESA_PLATEAU_MOUNTAINS);
+        setBiomeHeight(BiomeHeight.HIGH_PLATEAU, SAVANNA_PLATEAU, MESA_PLATEAU_FOREST, MESA_PLATEAU);
+        setBiomeHeight(BiomeHeight.FLAT_HILLS, DESERT_MOUNTAINS);
+        setBiomeHeight(BiomeHeight.BIG_HILLS, ICE_PLAINS_SPIKES);
+        setBiomeHeight(BiomeHeight.BIG_HILLS2, BIRCH_FOREST_HILLS_MOUNTAINS);
+        setBiomeHeight(BiomeHeight.SWAMPLAND_HILLS, SWAMPLAND_MOUNTAINS);
+        setBiomeHeight(BiomeHeight.MID_HILLS, JUNGLE_MOUNTAINS, JUNGLE_EDGE_MOUNTAINS, BIRCH_FOREST_MOUNTAINS, ROOFED_FOREST_MOUNTAINS);
+        setBiomeHeight(BiomeHeight.MID_HILLS2, TAIGA_MOUNTAINS, COLD_TAIGA_MOUNTAINS, MEGA_SPRUCE_TAIGA, MEGA_SPRUCE_TAIGA_HILLS);
+        setBiomeHeight(BiomeHeight.MID_HILLS3, FLOWER_FOREST);
+        setBiomeHeight(BiomeHeight.LOW_SPIKES, SAVANNA_MOUNTAINS);
+        setBiomeHeight(BiomeHeight.HIGH_SPIKES, SAVANNA_PLATEAU_MOUNTAINS);
 
         for (int x = 0; x < 5; x++) {
             for (int z = 0; z < 5; z++) {
