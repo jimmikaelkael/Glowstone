@@ -13,7 +13,6 @@ import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.noise.OctaveGenerator;
-import org.bukkit.util.noise.PerlinOctaveGenerator;
 import org.bukkit.util.noise.SimplexOctaveGenerator;
 
 import java.util.HashMap;
@@ -27,8 +26,8 @@ import static org.bukkit.block.Biome.*;
  */
 public class SurfaceGenerator extends GlowChunkGenerator {
 
-    private static final double COORDINATE_SCALE = 1024.0D;    // coordinateScale
-    private static final double HEIGHT_SCALE = 512.0D;         // heightScale
+    private static final double COORDINATE_SCALE = 684.412D;   // coordinateScale
+    private static final double HEIGHT_SCALE = 684.412D;       // heightScale
     private static final double HEIGHT_NOISE_SCALE_X = 200.0D; // depthNoiseScaleX
     private static final double HEIGHT_NOISE_SCALE_Z = 200.0D; // depthNoiseScaleZ
     private static final double DETAIL_NOISE_SCALE_X = 80.0D;  // mainNoiseScaleX
@@ -47,7 +46,7 @@ public class SurfaceGenerator extends GlowChunkGenerator {
     private static final Map<Biome, BiomeHeight> HEIGHT_MAP = new HashMap<>();
 
     private final double[] density = new double[5 * 33 * 5];
-    private final GroundGenerator groundGen = new MesaGroundGenerator();
+    private final GroundGenerator groundGen = new GroundGenerator();
     private final BiomeHeight defaultHeight = BiomeHeight.DEFAULT;
 
     public SurfaceGenerator() {
@@ -83,18 +82,24 @@ public class SurfaceGenerator extends GlowChunkGenerator {
     protected void createWorldOctaves(World world, Map<String, OctaveGenerator> octaves) {
         final Random seed = new Random(world.getSeed());
 
-        OctaveGenerator gen = new PerlinOctaveGenerator(seed, 16);
+        OctaveGenerator gen = new FractalNoiseGenerator(seed, 16, 5, 5);
         gen.setXScale(HEIGHT_NOISE_SCALE_X);
         gen.setZScale(HEIGHT_NOISE_SCALE_Z);
         octaves.put("height", gen);
 
-        gen = new PerlinOctaveGenerator(seed, 16);
+        gen = new FractalNoiseGenerator(seed, 16, 5, 33, 5);
         gen.setXScale(COORDINATE_SCALE);
         gen.setYScale(HEIGHT_SCALE);
         gen.setZScale(COORDINATE_SCALE);
         octaves.put("roughness", gen);
 
-        gen = new PerlinOctaveGenerator(seed, 8);
+        gen = new FractalNoiseGenerator(seed, 16, 5, 33, 5);
+        gen.setXScale(COORDINATE_SCALE);
+        gen.setYScale(HEIGHT_SCALE);
+        gen.setZScale(COORDINATE_SCALE);
+        octaves.put("roughness2", gen);
+
+        gen = new FractalNoiseGenerator(seed, 8, 5, 33, 5);
         gen.setXScale(COORDINATE_SCALE / DETAIL_NOISE_SCALE_X);
         gen.setYScale(HEIGHT_SCALE / DETAIL_NOISE_SCALE_Y);
         gen.setZScale(COORDINATE_SCALE / DETAIL_NOISE_SCALE_Z);
@@ -160,12 +165,16 @@ public class SurfaceGenerator extends GlowChunkGenerator {
 
     private void generateTerrainDensity(World world, int x, int z) {
         final Map<String, OctaveGenerator> octaves = getWorldOctaves(world);
-        final OctaveGenerator noiseHeight = octaves.get("height");
-        final OctaveGenerator noiseDetail = octaves.get("detail");
-        final OctaveGenerator noiseRoughness = octaves.get("roughness");
+        final double[] heightNoise = ((FractalNoiseGenerator) octaves.get("height")).fBm(x, z, 0.5D, 2.0D);
+        final double[] roughnessNoise = ((FractalNoiseGenerator) octaves.get("roughness")).fBm(x, 0, z, 0.5D, 2.0D);
+        final double[] roughnessNoise2 = ((FractalNoiseGenerator) octaves.get("roughness2")).fBm(x, 0, z, 0.5D, 2.0D);
+        final double[] detailNoise = ((FractalNoiseGenerator) octaves.get("detail")).fBm(x, 0, z, 0.5D, 2.0D);
 
         final int[] biomeData = ((GlowWorld) world).getChunkManager().getRoughBiomeMap(x - 2, z - 2, 10, 10);
         final WorldType type = world.getWorldType();
+
+        int index = 0;
+        int indexHeight = 0;
 
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
@@ -199,7 +208,7 @@ public class SurfaceGenerator extends GlowChunkGenerator {
                 avgHeightScale = avgHeightScale * 0.9D + 0.1D;
                 avgHeightBase = (avgHeightBase * 4.0D - 1.0D) / 8.0D;
 
-                double noiseH = noiseHeight.noise(x + i, z + j, 0.5D, 1.99998D) / 8000.0D;
+                double noiseH = heightNoise[indexHeight++] / 8000.0D;
                 if (noiseH < 0) {
                     noiseH = Math.abs(noiseH) * 0.3D;
                 }
@@ -216,12 +225,13 @@ public class SurfaceGenerator extends GlowChunkGenerator {
                     if (nH < 0.0D) {
                         nH *= 4.0D;
                     }
-                    double noiseR = noiseRoughness.noise(x + i, k * 8, z + j, 0.5D, 1.99998D) / 512.0D;
-                    double noiseD = (noiseDetail.noise(x + i, k * 8, z + j, 0.5D, 1.99998D) / 10.0D + 1.0D) / 2.0D;
-                    if (noiseD >= 0.0D && noiseD <= 1.0D) {
-                        noiseR *= noiseD;
-                    }
-                    double dst = noiseR - nH;
+                    double noiseR = roughnessNoise[index] / 512.0D;
+                    double noiseR2 = roughnessNoise2[index] / 512.0D;
+                    double noiseD = (detailNoise[index] / 10.0D + 1.0D) / 2.0D;
+                    // linear interpolation
+                    double dst = noiseD < 0 ? noiseR : noiseD > 1 ? noiseR2 : noiseR + (noiseR2 - noiseR) * noiseD;
+                    dst -= nH;
+                    index++;
                     if (k > 29) {
                       double lowering = (k - 29) / 3.0D;
                       dst = dst * (1.0D - lowering) + lowering * -10.0D;
